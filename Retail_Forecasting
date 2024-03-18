@@ -1,0 +1,191 @@
+library(fpp3)
+get_my_data <- function(student_id) {
+  set.seed(student_id)
+  all_data <- fill_gaps(readr::read_rds("https://bit.ly/monashretaildata"))
+  while(TRUE) {
+    retail <- filter(all_data, `Series ID` == sample(`Series ID`, 1)) 
+    if(!any(is.na(retail$Turnover))) return(retail)
+  }
+}
+
+
+
+retail <- get_my_data(33664765)
+library(ggplot2)
+library(fable)
+
+retail
+#question 1 - plot the time series
+
+str(retail)
+
+# Convert to tsibble
+retail_ts <- as_tsibble(retail, index = Month)
+
+#Q1 - Autoplot
+retail_ts |>
+  autoplot(Turnover) + 
+  labs(title = "Turnover Trend")
+
+#Q2 - Seasonal plot
+retail_ts |>
+  gg_season(Turnover, labels = "both") +
+  labs(y = "Turnover",
+       title = "Seasonal plot: Retail turnover in $Million AUD")
+
+retail_ts |>
+  autoplot(Turnover)
+
+retail$Month <- as.Date(paste0(retail$Month, "01"), format = "%Y %b %d")
+
+# Convert to tsibble
+retail_ts <- as_tsibble(retail, index = Month)
+
+# Plotting the time series with smaller intervals on the month axis
+autoplot(retail_ts, Turnover) +
+  scale_x_date(date_breaks = "3 year", date_labels = "%b %Y") +
+  labs(title = "Turnover Time Series",
+       x = "Month",
+       y = "Turnover")
+  
+
+autoplot(retail_ts, Turnover) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+  labs(title = "Turnover Time Series",
+       x = "Month",
+       y = "Turnover")
+
+#Q3 - 
+
+retail_ts |>
+  gg_subseries(Turnover) +
+  labs(y = "Turnover",
+       title = "Subseries plot: Retail turnover in $Million AUD")
+  
+
+# Plotting the time series
+autoplot(retail_ts, series = "Turnover") +
+  labs(title = "Turnover Time Series",
+       x = "Month",
+       y = "Turnover")
+
+#Q4 - Box-Cox transformations
+
+retail_ts |>
+  features(Turnover, features = guerrero)
+
+retail_ts |>
+  autoplot(box_cox(Turnover, 0.478)) + 
+  labs(y = "Box-Cox transformed turnover")
+
+retail_ts |>
+  autoplot(Turnover)
+
+#Q5 
+
+
+library(forecast)
+
+# Assuming you already have the retail data
+# retail <- get_my_data(33664765)
+
+# Apply Box-Cox transformation
+lambda <- BoxCox.lambda(retail$Turnover)
+
+# Print the estimated lambda
+print(lambda)
+
+retail_ts |>
+  model(STL(Turnover ~ season(window = "periodic"))) |>
+  components() |>
+  autoplot()
+
+
+
+retail_ts_filled %>%
+  model(STL(Turnover)) |>
+  components() |>
+  autoplot(Turnover) + labs(title = "STL decomposition")
+
+get_my_data <- function(student_id) {
+  set.seed(student_id)
+  all_data <- fill_gaps(readr::read_rds("https://bit.ly/monashretaildata"))
+  while(TRUE) {
+    retail <- filter(all_data, `Series ID` == sample(`Series ID`, 1)) 
+    if(!any(is.na(retail$Turnover))) return(retail)
+  }
+}
+
+retail
+
+retail_ts <- as_tsibble(retail, index = Month)
+
+get_my_data <- function(student_id) {
+  set.seed(student_id)
+  all_data <- fill_gaps(readr::read_rds("https://bit.ly/monashretaildata"))
+  while(TRUE) {
+    retail_ts <- filter(all_data, `Series ID` == sample(`Series ID`, 1)) 
+    if(!any(is.na(retail_ts$Turnover))) return(retail_ts)
+  }
+}
+
+retail_ts |>
+  model(STL(Turnover)) |>
+  components() |>
+  autoplot(Turnover) + labs(title = "STL decomposition")
+
+get_my_data <- function(student_id) {
+  set.seed(student_id)
+  all_data <- fill_gaps(readr::read_rds("https://bit.ly/monashretaildata"))
+  while(TRUE) {
+    retail_ts <- filter(all_data, `Series ID` == sample(`Series ID`, 1)) 
+    if(!any(is.na(retail_ts$Turnover))) return(retail_ts)
+  }
+}
+
+
+
+retail_ts <- get_my_data(33664765)
+
+retail_ts |>
+  model(STL(Turnover)) |>
+  components() |>
+  autoplot(Turnover) + labs(title = "STL decomposition")
+
+retail_ts |>
+  model(STL(Turnover ~ season(window = 15) + trend(window = 15))) |>
+  components() |>
+  autoplot(Turnover) + labs(title = "STL decomposition")
+
+
+
+
+library(ggfortify)
+library(patchwork)
+
+plot_stl <- retail_ts %>%
+  model(STL(Turnover)) %>%
+  components() %>%
+  autoplot(Turnover) +
+  labs(title = "STL decomposition")
+
+# Plot 2: Seasonal plot
+plot_season <- retail_ts %>%
+  gg_season(Turnover, labels = "both") +
+  labs(y = "Turnover",
+       title = "Seasonal plot: Retail turnover in $Million AUD")
+
+# Plot 3: Original time series plot
+plot_original <- retail_ts %>%
+  autoplot(Turnover) +
+  labs(title = "Turnover Trend")
+  
+
+combined_plot <- plot_stl + plot_season + plot_original
+
+
+combined_plot <- combined_plot +
+  plot_layout(guides = "collect")
+
+
+print(combined_plot)
