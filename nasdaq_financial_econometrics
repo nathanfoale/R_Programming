@@ -1,0 +1,55 @@
+library(tidyverse)
+
+nasdaq <- read.csv('/Users/nathanfoale/Desktop/data/NASDAQ_2024.csv')
+
+install.packages("readxl")
+library(readxl)
+
+excel_file <- "/Users/nathanfoale/Desktop/data/file1_2024.xlsx"
+
+data <- read_excel(excel_file)
+
+# Print the first few rows of the data
+head(data)
+
+hist(data$X1, 
+     main = "Histogram of X1", 
+     xlab = "Variable Values",
+     ylab = "Frequency")
+
+summary(data$X1)
+
+sd(data$X1)
+
+install.packages("e1071")
+library(e1071)
+
+skewness_value <- skewness(data$X1)
+
+# Compute kurtosis
+kurtosis_value <- kurtosis(data$X1)
+
+install.packages("moments")
+library(moments)
+
+skewness_value
+
+# Compute kurtosis
+kurtosis_value
+
+install.packages("tseries")  # Install the package if you haven't already
+library(tseries)
+
+result <- jarque.bera.test(data$X1)
+
+# Get the p-value
+p_value <- result$p.value
+
+# Compare the p-value with the significance level (0.05)
+if (p_value < 0.05) {
+  cat("Reject H0: Sample data is not normally distributed (p-value =", p_value, ")\n")
+} else {
+  cat("Fail to reject H0: Sample data is normally distributed (p-value =", p_value, ")\n")
+}
+
+library(tseries)
